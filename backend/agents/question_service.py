@@ -38,7 +38,11 @@ class QuestionService:
 
     def generate_questions(self, goal: str) -> list[dict]:
         """
-        Generate a list of medical questions based on the user's healthcare goal.
+        Generate medical questions based on the user's healthcare goal.
+
+        IMPORTANT: Field names are ALWAYS pinned to DEFAULT_QUESTIONS keys so
+        they match exactly what ValidationEngine requires.  Gemini is only used
+        to personalise the question *text*, never the *field* keys.
 
         Args:
             goal: The user's stated healthcare goal (e.g., "I want treatment for breast cancer")
@@ -47,35 +51,48 @@ class QuestionService:
             List of dicts with keys: field, question, required
         """
         try:
+            # Build a field→question mapping from Gemini-personalised text
             prompt = f"""
-You are a healthcare data collection assistant. Based on the following patient goal:
+You are a healthcare data collection assistant helping a patient with this goal:
 
 "{goal}"
 
-Generate a concise list of 8-10 medical questions that need to be answered to build a complete medical profile and provide treatment recommendations.
+Rephrase each of the following question fields into a clear, context-aware question for the patient.
+Return ONLY a valid JSON object mapping field name → question text, like:
+{{
+  "disease_type": "...",
+  "stage": "...",
+  "age": "...",
+  "gender": "...",
+  "medical_history": "...",
+  "symptoms": "...",
+  "surgery_allowed": "...",
+  "budget_limit": "...",
+  "location_type": "...",
+  "hospital_preference": "..."
+}}
 
-Return ONLY a valid JSON array with this exact format:
-[
-  {{
-    "field": "field_name_snake_case",
-    "question": "The question text for the patient?",
-    "required": true
-  }}
-]
-
-Include questions about: disease type, stage/severity, age, gender, medical history, symptoms, surgery preference, budget, and location preference.
-Do not include any explanatory text, only the JSON array.
+Fields to rephrase: disease_type, stage, age, gender, medical_history, symptoms,
+surgery_allowed, budget_limit, location_type, hospital_preference.
+Do not add or remove fields. Return only the JSON object, no extra text.
 """
             response = _model.generate_content(prompt)
             raw = response.text.strip()
-
-            # Extract JSON array from response
-            json_match = re.search(r'\[.*\]', raw, re.DOTALL)
+            json_match = re.search(r'\{.*\}', raw, re.DOTALL)
             if json_match:
-                questions = json.loads(json_match.group())
-                if isinstance(questions, list) and len(questions) > 0:
-                    print(f"[QuestionService] Generated {len(questions)} questions via Gemini.")
-                    return questions
+                text_map = json.loads(json_match.group())
+                if isinstance(text_map, dict):
+                    # Apply personalised text but keep field names from DEFAULT_QUESTIONS
+                    personalised = []
+                    for q in DEFAULT_QUESTIONS:
+                        field = q["field"]
+                        personalised.append({
+                            "field": field,
+                            "question": text_map.get(field, q["question"]),
+                            "required": q["required"],
+                        })
+                    print(f"[QuestionService] Personalised {len(personalised)} questions via Gemini.")
+                    return personalised
 
         except Exception as e:
             print(f"[QuestionService] Gemini error, using defaults: {e}")

@@ -39,12 +39,7 @@ def show_login():
                             set_auth_session(res)
                             st.success("Login successful! Redirecting...")
                             time.sleep(0.5)
-                            # Version-safe navigation
-                            if hasattr(st, "navigation"):
-                                st.switch_page("pages/dashboard.py")
-                            else:
-                                st.session_state.page = "dashboard"
-                                st.rerun()
+                            st.switch_page("pages/dashboard.py")
         
         st.markdown("---")
         st.markdown("New user? [Create an account here](register)")

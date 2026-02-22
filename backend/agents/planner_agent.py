@@ -309,20 +309,33 @@ class PlannerAgent:
     # =========================================================================
     def loop_until_data_complete(self, answers: dict) -> dict:
         """
-        Strict loop controller (Steps 8-10 of the diagram):
-
-          while data_complete == False:
-              collect via QuestionService
-              store via MedicalDataService (in-memory for stateless calls)
-              re-run ValidationEngine
-
-        Controlled ONLY by PlannerAgent.
-        Returns the final validation result dict.
+        Strict loop controller (Steps 8-10 of the diagram).
+        Injects sensible defaults and infers disease_type from goal
+        before validation so the pipeline is not blocked by trivial omissions.
         """
         # Merge incoming answers with any previously collected ones
         self.state["responses"].update(answers)
         self.state["retry_count"] += 1
         loop_count = 0
+
+        # ── Smart defaults for constraint fields ──────────────────────────────
+        resp = self.state["responses"]
+
+        # location_type / hospital_preference / surgery_allowed always have defaults
+        if not resp.get("location_type"):
+            resp["location_type"] = "national"
+        if not resp.get("hospital_preference"):
+            resp["hospital_preference"] = "private"
+        if not resp.get("surgery_allowed"):
+            resp["surgery_allowed"] = "yes"
+
+        # Infer disease_type from the goal text if the user didn't fill it in
+        if not resp.get("disease_type") and self.goal:
+            resp["disease_type"] = self.goal  # best-effort fallback
+
+        # Infer stage if missing (many patients don't know — use "unknown")
+        if not resp.get("stage"):
+            resp["stage"] = "unknown"
 
         self._log("Data-collection loop started", detail=f"retry #{self.state['retry_count']}")
 

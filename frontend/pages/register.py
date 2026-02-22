@@ -41,12 +41,7 @@ def show_register():
                             set_auth_session(res)
                             st.success("Registration successful! Welcome aboard.")
                             time.sleep(0.5)
-                            # Version-safe navigation
-                            if hasattr(st, "navigation"):
-                                st.switch_page("pages/dashboard.py")
-                            else:
-                                st.session_state.page = "dashboard"
-                                st.rerun()
+                            st.switch_page("pages/dashboard.py")
         
         st.markdown("---")
         st.markdown("Already have an account? [Login here](login)")

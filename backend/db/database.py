@@ -10,7 +10,21 @@ class Base(DeclarativeBase):
     pass
 
 
-engine = create_async_engine(DATABASE_URL, echo=False, future=True)
+import ssl as _ssl
+
+# Strip any ?ssl / ?sslmode query params from the URL so asyncpg doesn't
+# complain, then pass ssl=True via connect_args for cloud databases (Aiven etc.)
+_db_url = DATABASE_URL.split("?")[0]
+_ssl_ctx = _ssl.create_default_context()
+_ssl_ctx.check_hostname = False
+_ssl_ctx.verify_mode = _ssl.CERT_NONE
+
+engine = create_async_engine(
+    _db_url,
+    echo=False,
+    future=True,
+    connect_args={"ssl": _ssl_ctx},
+)
 
 AsyncSessionLocal = async_sessionmaker(
     bind=engine,
