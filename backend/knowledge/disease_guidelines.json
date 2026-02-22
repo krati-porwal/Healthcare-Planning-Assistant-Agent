@@ -1,0 +1,344 @@
+{
+    "diseases": [
+        {
+            "disease_type": "Breast Cancer",
+            "stages": [
+                {
+                    "stage": "Stage I",
+                    "description": "Early stage, tumor < 2cm, no lymph node involvement",
+                    "recommended_treatments": [
+                        "Surgery (Lumpectomy)",
+                        "Radiation Therapy",
+                        "Hormone Therapy"
+                    ],
+                    "surgery_required": true,
+                    "required_reports": [
+                        "Biopsy",
+                        "Mammogram",
+                        "Blood Test"
+                    ],
+                    "timeline": "3-6 months",
+                    "notes": "High cure rate with early intervention"
+                },
+                {
+                    "stage": "Stage II",
+                    "description": "Tumor 2-5cm or limited lymph node involvement",
+                    "recommended_treatments": [
+                        "Surgery (Mastectomy or Lumpectomy)",
+                        "Chemotherapy",
+                        "Radiation Therapy"
+                    ],
+                    "surgery_required": true,
+                    "required_reports": [
+                        "Biopsy",
+                        "Mammogram",
+                        "MRI",
+                        "Blood Panel"
+                    ],
+                    "timeline": "6-9 months",
+                    "notes": "Combination therapy is standard of care"
+                },
+                {
+                    "stage": "Stage III",
+                    "description": "Advanced local spread, significant lymph node involvement",
+                    "recommended_treatments": [
+                        "Neoadjuvant Chemotherapy",
+                        "Surgery",
+                        "Radiation",
+                        "Targeted Therapy"
+                    ],
+                    "surgery_required": true,
+                    "required_reports": [
+                        "Biopsy",
+                        "PET Scan",
+                        "CT Scan",
+                        "HER2 Test"
+                    ],
+                    "timeline": "9-12 months",
+                    "notes": "Multidisciplinary team approach recommended"
+                },
+                {
+                    "stage": "Stage IV",
+                    "description": "Metastatic, spread to distant organs",
+                    "recommended_treatments": [
+                        "Palliative Chemotherapy",
+                        "Targeted Therapy",
+                        "Immunotherapy",
+                        "Hormone Therapy"
+                    ],
+                    "surgery_required": false,
+                    "required_reports": [
+                        "Full Body CT",
+                        "Bone Scan",
+                        "Brain MRI",
+                        "Liquid Biopsy"
+                    ],
+                    "timeline": "Ongoing (palliative)",
+                    "notes": "Focus on quality of life and disease management"
+                }
+            ],
+            "hospital_type": "Oncology",
+            "specialist": "Oncologist / Breast Surgeon"
+        },
+        {
+            "disease_type": "Lung Cancer",
+            "stages": [
+                {
+                    "stage": "Stage I",
+                    "description": "Tumor confined to one lung, no spread",
+                    "recommended_treatments": [
+                        "Surgery (Lobectomy)",
+                        "Stereotactic Body Radiation"
+                    ],
+                    "surgery_required": true,
+                    "required_reports": [
+                        "CT Scan",
+                        "PET Scan",
+                        "Pulmonary Function Test"
+                    ],
+                    "timeline": "3-6 months",
+                    "notes": "Surgery is primary treatment for eligible patients"
+                },
+                {
+                    "stage": "Stage II",
+                    "description": "Tumor with regional lymph node spread",
+                    "recommended_treatments": [
+                        "Surgery",
+                        "Adjuvant Chemotherapy",
+                        "Radiation"
+                    ],
+                    "surgery_required": true,
+                    "required_reports": [
+                        "CT Scan",
+                        "PET Scan",
+                        "Bronchoscopy",
+                        "Biopsy"
+                    ],
+                    "timeline": "6-9 months",
+                    "notes": "Post-surgery chemotherapy reduces recurrence risk"
+                },
+                {
+                    "stage": "Stage III",
+                    "description": "Extensive lymph node involvement",
+                    "recommended_treatments": [
+                        "Concurrent Chemoradiation",
+                        "Immunotherapy (Durvalumab)"
+                    ],
+                    "surgery_required": false,
+                    "required_reports": [
+                        "Mediastinoscopy",
+                        "PET Scan",
+                        "Brain MRI"
+                    ],
+                    "timeline": "6-12 months",
+                    "notes": "Surgery may not be feasible; chemoradiation is standard"
+                },
+                {
+                    "stage": "Stage IV",
+                    "description": "Metastatic lung cancer",
+                    "recommended_treatments": [
+                        "Targeted Therapy (EGFR/ALK inhibitors)",
+                        "Immunotherapy",
+                        "Palliative Chemo"
+                    ],
+                    "surgery_required": false,
+                    "required_reports": [
+                        "Molecular Testing",
+                        "PDL1 Test",
+                        "Full CT",
+                        "Brain MRI"
+                    ],
+                    "timeline": "Ongoing",
+                    "notes": "Biomarker testing mandatory before treatment selection"
+                }
+            ],
+            "hospital_type": "Oncology",
+            "specialist": "Pulmonologist / Thoracic Surgeon"
+        },
+        {
+            "disease_type": "Diabetes",
+            "stages": [
+                {
+                    "stage": "Type 1",
+                    "description": "Autoimmune destruction of insulin-producing cells",
+                    "recommended_treatments": [
+                        "Insulin Therapy",
+                        "Continuous Glucose Monitoring",
+                        "Diet Management"
+                    ],
+                    "surgery_required": false,
+                    "required_reports": [
+                        "HbA1c",
+                        "Fasting Glucose",
+                        "C-Peptide",
+                        "GAD Antibodies"
+                    ],
+                    "timeline": "Lifelong management",
+                    "notes": "Insulin is mandatory; patient education is critical"
+                },
+                {
+                    "stage": "Type 2 - Early",
+                    "description": "Insulin resistance with mild elevation",
+                    "recommended_treatments": [
+                        "Lifestyle Modification",
+                        "Metformin",
+                        "Diet Therapy"
+                    ],
+                    "surgery_required": false,
+                    "required_reports": [
+                        "HbA1c",
+                        "Fasting Glucose",
+                        "Lipid Panel",
+                        "Kidney Function"
+                    ],
+                    "timeline": "3-6 months monitoring",
+                    "notes": "Reversible with early intervention"
+                },
+                {
+                    "stage": "Type 2 - Advanced",
+                    "description": "Poorly controlled diabetes with complications",
+                    "recommended_treatments": [
+                        "Combination Oral + Insulin",
+                        "GLP-1 Agonists",
+                        "SGLT2 Inhibitors"
+                    ],
+                    "surgery_required": false,
+                    "required_reports": [
+                        "HbA1c",
+                        "eGFR",
+                        "ECG",
+                        "Urine Albumin",
+                        "Eye Exam"
+                    ],
+                    "timeline": "Lifelong",
+                    "notes": "Cardiovascular and renal protection therapy essential"
+                }
+            ],
+            "hospital_type": "Endocrinology",
+            "specialist": "Endocrinologist / Diabetologist"
+        },
+        {
+            "disease_type": "Heart Disease",
+            "stages": [
+                {
+                    "stage": "Stable Angina",
+                    "description": "Predictable chest pain on exertion",
+                    "recommended_treatments": [
+                        "Medical Therapy",
+                        "Angioplasty (PCI)",
+                        "Lifestyle changes"
+                    ],
+                    "surgery_required": false,
+                    "required_reports": [
+                        "ECG",
+                        "Stress Test",
+                        "Echocardiogram",
+                        "Coronary Angiogram"
+                    ],
+                    "timeline": "3-6 months",
+                    "notes": "Risk factor control is paramount"
+                },
+                {
+                    "stage": "Unstable Angina / NSTEMI",
+                    "description": "Acute coronary syndrome without full blockage",
+                    "recommended_treatments": [
+                        "Emergency PCI",
+                        "Anticoagulants",
+                        "Beta-blockers",
+                        "Statins"
+                    ],
+                    "surgery_required": true,
+                    "required_reports": [
+                        "ECG",
+                        "Troponin Test",
+                        "Echocardiogram",
+                        "Coronary Angiogram"
+                    ],
+                    "timeline": "Acute: days; Recovery: 3 months",
+                    "notes": "Immediate hospitalization required"
+                },
+                {
+                    "stage": "STEMI (Heart Attack)",
+                    "description": "Complete coronary artery blockage",
+                    "recommended_treatments": [
+                        "Emergency PCI or CABG",
+                        "Thrombolytics",
+                        "ICU Care"
+                    ],
+                    "surgery_required": true,
+                    "required_reports": [
+                        "Emergency ECG",
+                        "Troponin",
+                        "Chest X-Ray"
+                    ],
+                    "timeline": "Emergency + 6 months rehab",
+                    "notes": "Time-critical: door-to-balloon time < 90 minutes"
+                }
+            ],
+            "hospital_type": "Cardiology",
+            "specialist": "Cardiologist / Cardiac Surgeon"
+        },
+        {
+            "disease_type": "Kidney Disease",
+            "stages": [
+                {
+                    "stage": "CKD Stage 1-2",
+                    "description": "Early chronic kidney disease, mild reduction in kidney function",
+                    "recommended_treatments": [
+                        "BP Control",
+                        "Dietary Modification",
+                        "Nephroprotective Drugs"
+                    ],
+                    "surgery_required": false,
+                    "required_reports": [
+                        "eGFR",
+                        "Urine Albumin",
+                        "Serum Creatinine",
+                        "Metabolic Panel"
+                    ],
+                    "timeline": "Ongoing",
+                    "notes": "Slow progression with early management"
+                },
+                {
+                    "stage": "CKD Stage 3-4",
+                    "description": "Moderate to severe kidney function loss",
+                    "recommended_treatments": [
+                        "Nephrology Consult",
+                        "Erythropoietin",
+                        "Phosphate Binders",
+                        "ACE Inhibitors"
+                    ],
+                    "surgery_required": false,
+                    "required_reports": [
+                        "eGFR",
+                        "BUN",
+                        "Potassium",
+                        "Phosphorus",
+                        "PTH"
+                    ],
+                    "timeline": "Ongoing with quarterly reviews",
+                    "notes": "Prepare for potential dialysis planning"
+                },
+                {
+                    "stage": "CKD Stage 5 (ESRD)",
+                    "description": "End-stage renal disease, kidney failure",
+                    "recommended_treatments": [
+                        "Hemodialysis",
+                        "Peritoneal Dialysis",
+                        "Kidney Transplant"
+                    ],
+                    "surgery_required": true,
+                    "required_reports": [
+                        "Dialysis Assessment",
+                        "Transplant Evaluation",
+                        "Cardiac Clearance"
+                    ],
+                    "timeline": "Lifelong",
+                    "notes": "Transplant is preferred treatment if eligible"
+                }
+            ],
+            "hospital_type": "Nephrology",
+            "specialist": "Nephrologist"
+        }
+    ]
+}
