@@ -33,8 +33,10 @@ class RecommendationEngine:
             "timeline": decision.get("timeline", ""),
             "specialist": decision.get("specialist", ""),
             "required_reports": decision.get("required_reports", []),
+            "lab_verification": decision.get("lab_verification", {}),  # Fix 2: lab report cross-reference
             "notes": decision.get("notes", ""),
             "surgery_allowed": decision.get("surgery_allowed", True),
+            "patient_area_type": decision.get("patient_area_type", "urban"),
         }
 
         # Rank hospitals by composite score

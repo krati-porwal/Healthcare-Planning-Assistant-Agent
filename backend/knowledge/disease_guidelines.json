@@ -339,6 +339,75 @@
             ],
             "hospital_type": "Nephrology",
             "specialist": "Nephrologist"
+        },
+        {
+            "disease_type": "Hypertension",
+            "stages": [
+                {
+                    "stage": "Stage 1",
+                    "description": "Systolic 130-139 mmHg or Diastolic 80-89 mmHg",
+                    "recommended_treatments": [
+                        "Lifestyle Modification",
+                        "DASH Diet",
+                        "Regular Physical Activity",
+                        "Low-dose ACE Inhibitor or ARB (if indicated)"
+                    ],
+                    "surgery_required": false,
+                    "required_reports": [
+                        "BP Monitoring (Home + Clinic)",
+                        "Fasting Blood Sugar",
+                        "Lipid Panel",
+                        "Kidney Function Test",
+                        "ECG"
+                    ],
+                    "timeline": "3-6 months lifestyle change; reassess quarterly",
+                    "notes": "Often manageable without medication if caught early. Weight loss and sodium reduction are highly effective."
+                },
+                {
+                    "stage": "Stage 2",
+                    "description": "Systolic >=140 mmHg or Diastolic >=90 mmHg",
+                    "recommended_treatments": [
+                        "Combination Antihypertensive Therapy (ACE Inhibitor + CCB)",
+                        "Diuretics",
+                        "Lifestyle Modification",
+                        "Cardiac Monitoring"
+                    ],
+                    "surgery_required": false,
+                    "required_reports": [
+                        "24-hour Ambulatory BP Monitoring",
+                        "ECG",
+                        "Echocardiogram",
+                        "Urine Albumin",
+                        "Kidney Function Test",
+                        "Lipid Panel"
+                    ],
+                    "timeline": "Lifelong management with 3-monthly reviews",
+                    "notes": "Target BP < 130/80. End organ damage (kidney, heart, eye) must be assessed."
+                },
+                {
+                    "stage": "Hypertensive Crisis",
+                    "description": "Systolic > 180 mmHg and/or Diastolic > 120 mmHg — Emergency",
+                    "recommended_treatments": [
+                        "Emergency IV Antihypertensives (Labetalol / Nicardipine)",
+                        "ICU Monitoring",
+                        "Immediate BP Reduction (controlled)",
+                        "Organ Damage Assessment"
+                    ],
+                    "surgery_required": false,
+                    "required_reports": [
+                        "Emergency ECG",
+                        "CT Head (rule out stroke)",
+                        "Chest X-Ray",
+                        "Troponin",
+                        "Renal Function",
+                        "Urine Dipstick"
+                    ],
+                    "timeline": "Acute stabilization 24-48 hours; ongoing management lifelong",
+                    "notes": "Medical emergency — immediate hospitalization required. Do not reduce BP too rapidly."
+                }
+            ],
+            "hospital_type": "Cardiology",
+            "specialist": "Cardiologist / Internal Medicine Physician"
         }
     ]
 }

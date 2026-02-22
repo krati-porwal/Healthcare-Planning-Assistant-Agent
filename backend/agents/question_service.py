@@ -15,19 +15,23 @@ genai.configure(api_key=GEMINI_API_KEY)
 _model = genai.GenerativeModel("gemini-1.5-flash")
 
 
-# Default questions for fallback when LLM is unavailable
+# Default questions — field names are FIXED to match ValidationEngine keys.
+# Gemini only personalises the question text, never the field keys.
 DEFAULT_QUESTIONS = [
-    {"field": "disease_type", "question": "What type of disease or medical condition are you dealing with?", "required": True},
-    {"field": "stage", "question": "What is the current stage or severity of the condition (if known)?", "required": True},
-    {"field": "age", "question": "What is the patient's age?", "required": True},
-    {"field": "gender", "question": "What is the patient's gender?", "required": True},
-    {"field": "medical_history", "question": "Please describe any relevant medical history (previous illnesses, surgeries, medications)?", "required": True},
-    {"field": "symptoms", "question": "What symptoms is the patient currently experiencing?", "required": True},
-    {"field": "surgery_allowed", "question": "Is the patient open to surgical procedures? (yes/no)", "required": True},
-    {"field": "budget_limit", "question": "What is the approximate budget for treatment (in INR)? E.g., 200000 for 2 lakhs", "required": True},
-    {"field": "location_type", "question": "Do you prefer a local, national, or international hospital?", "required": True},
-    {"field": "hospital_preference", "question": "Do you prefer a government or private hospital?", "required": False},
+    {"field": "disease_type",         "question": "What type of disease or medical condition are you dealing with? (e.g., Breast Cancer, Hypertension, Diabetes)", "required": True},
+    {"field": "stage",                "question": "What is the current stage or severity of the condition? (e.g., Stage II, Type 2, Hypertensive Crisis — enter 'unknown' if unsure)", "required": True},
+    {"field": "age",                  "question": "What is the patient's age?", "required": True},
+    {"field": "gender",               "question": "What is the patient's gender?", "required": True},
+    {"field": "medical_history",      "question": "Describe any relevant medical history — previous illnesses, surgeries, or ongoing medications.", "required": True},
+    {"field": "symptoms",             "question": "What symptoms is the patient currently experiencing?", "required": True},
+    {"field": "existing_lab_reports", "question": "Have you already done any lab tests or investigations? If yes, list them with results (e.g., 'HbA1c: 8.2', 'Biopsy: Positive', 'ECG: Normal'). Enter 'none' if not done yet.", "required": False},
+    {"field": "surgery_allowed",      "question": "Is the patient open to surgical procedures if medically required?", "required": True},
+    {"field": "budget_limit",         "question": "What is the approximate budget for treatment (in INR)? E.g., 200000 for 2 lakhs.", "required": True},
+    {"field": "location_type",        "question": "How far are you willing to travel for treatment? (local = same city, national = anywhere in India, international = abroad)", "required": True},
+    {"field": "patient_area_type",    "question": "Are you located in an urban city, a rural/semi-urban area, or a remote location? (urban / rural / remote)", "required": True},
+    {"field": "hospital_preference",  "question": "Do you prefer a government or private hospital?", "required": False},
 ]
+
 
 
 class QuestionService:

@@ -592,14 +592,20 @@ class PlannerAgent:
         # ── Step 11a: Build profile & constraint dicts ───────────────────────
         responses = self.state["responses"]
         profile = {
-            "disease_type":    responses.get("disease_type", ""),
-            "cancer_type":     responses.get("cancer_type", responses.get("disease_type", "")),
-            "stage":           responses.get("stage", ""),
-            "medical_history": responses.get("medical_history", ""),
-            "surgery_allowed": self._parse_bool(responses.get("surgery_allowed", "yes")),
-            "age":             responses.get("age", ""),
-            "gender":          responses.get("gender", ""),
-            "symptoms":        responses.get("symptoms", ""),
+            "disease_type":        responses.get("disease_type", ""),
+            "cancer_type":         responses.get("cancer_type", responses.get("disease_type", "")),
+            "stage":               responses.get("stage", ""),
+            "medical_history":     responses.get("medical_history", ""),
+            "surgery_allowed":     self._parse_bool(responses.get("surgery_allowed", "yes")),
+            "age":                 responses.get("age", ""),
+            "gender":              responses.get("gender", ""),
+            "symptoms":            responses.get("symptoms", ""),
+            # Fix 4: patient city from Step 1 → powers location-aware hospital ranking
+            "patient_city":        responses.get("patient_city", responses.get("location", "")),
+            # Fix 5: urban/rural/remote → rural patients routed to govt hospitals
+            "patient_area_type":   responses.get("patient_area_type", "urban"),
+            # Fix 2: existing lab reports → cross-referenced against required reports
+            "existing_lab_reports": responses.get("existing_lab_reports", "none"),
         }
         constraint = {
             "budget_limit":        responses.get("budget_limit"),
@@ -736,13 +742,17 @@ class PlannerAgent:
 
         # Build profile + constraint dicts
         profile = {
-            "disease_type":    profile_orm.disease_type or "",
-            "stage":           profile_orm.stage or "",
-            "medical_history": profile_orm.medical_history or "",
-            "surgery_allowed": profile_orm.surgery_allowed,
-            "age":             profile_orm.age,
-            "gender":          profile_orm.gender or "",
-            "symptoms":        profile_orm.symptoms or "",
+            "disease_type":         profile_orm.disease_type or "",
+            "stage":                profile_orm.stage or "",
+            "medical_history":      profile_orm.medical_history or "",
+            "surgery_allowed":      profile_orm.surgery_allowed,
+            "age":                  profile_orm.age,
+            "gender":               profile_orm.gender or "",
+            "symptoms":             profile_orm.symptoms or "",
+            # Fix 4 + 5: location fields from answers (not stored in ORM directly)
+            "patient_city":         answers.get("patient_city", answers.get("location", "")),
+            "patient_area_type":    answers.get("patient_area_type", "urban"),
+            "existing_lab_reports": answers.get("existing_lab_reports", "none"),
         }
 
         # Explicitly query Constraint (async sessions forbid lazy-loading)

@@ -776,7 +776,9 @@ def render_step1():
                 # Direct mode: skip HTTP session creation
                 import uuid as _uuid
                 st.session_state.session_id = str(_uuid.uuid4())
-                st.session_state.user_id = str(_uuid.uuid4())
+                st.session_state.user_id    = str(_uuid.uuid4())
+                # Store city for hospital location ranking (Fix 4)
+                st.session_state.patient_city = location.strip()
 
                 # Generate questions via direct agent call
                 import sys, os
@@ -873,6 +875,13 @@ def render_step2():
                     index=0 if default_val in ("yes", True) else 1,
                     key=f"q_{field}"
                 )
+            elif field == "patient_area_type":
+                val = st.selectbox(
+                    f"{'🔴' if required else '🔵'} {question_text}",
+                    options=["urban", "rural", "remote"],
+                    index=0,
+                    key=f"q_{field}"
+                )
             elif field == "location_type":
                 val = st.selectbox(
                     f"{'🔴' if required else '🔵'} {question_text}",
@@ -946,6 +955,11 @@ def render_step2():
                     planner.decomposeGoal()
                     planner.createExecutionPlan()
 
+                # Inject patient city from Step 1 so hospital ranking uses it (Fix 4)
+                patient_city = getattr(st.session_state, "patient_city", "") or ""
+                if patient_city:
+                    merged_answers["patient_city"] = patient_city
+
                 result = planner.executePlan(merged_answers)
             else:
                 result = api_respond_plan(
@@ -1012,6 +1026,24 @@ def render_step3():
 
     if tp.get("notes"):
         st.info(f"📝 {tp.get('notes')}")
+
+    # ── Lab Verification ──────────────────────────────────────────────────
+    lab_v = tp.get("lab_verification")
+    if not lab_v:  # may also be nested in result directly
+        lab_v = result.get("lab_verification")
+    if lab_v:
+        st.markdown('<div class="section-title">🧪 Lab Report Verification</div>', unsafe_allow_html=True)
+        st.markdown('<div class="result-card">', unsafe_allow_html=True)
+        note = lab_v.get("note", "")
+        completed = lab_v.get("completed", [])
+        pending   = lab_v.get("pending", [])
+        if completed:
+            st.success(f"✅ Already done ({len(completed)}): {', '.join(completed)}")
+        if pending:
+            st.warning(f"⏳ Still needed ({len(pending)}): {', '.join(pending)}")
+        if note:
+            st.info(f"📋 {note}")
+        st.markdown('</div>', unsafe_allow_html=True)
 
     st.markdown('</div>', unsafe_allow_html=True)
 

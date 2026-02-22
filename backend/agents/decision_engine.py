@@ -66,34 +66,43 @@ class DecisionEngine:
         return None
 
     def _filter_hospitals(self, hospital_type: str, constraint: dict,
-                          location_preference: str = None) -> list[dict]:
-        """Filter hospitals from JSON based on type, budget, and location."""
+                          patient_city: str = "",
+                          patient_area_type: str = "urban") -> list[dict]:
+        """
+        Filter and rank hospitals by type, budget, location match, and area type.
+        Rural/remote patients get government hospital preference.
+        Patient city matching gives a strong score boost so nearby hospitals
+        appear first — fixing the previously broken location filtering.
+        """
         budget_limit = constraint.get("budget_limit")
-        location_type = constraint.get("location_type", "national")
         hospital_pref = constraint.get("hospital_preference", "any")
+        area = (patient_area_type or "urban").lower()
+
+        # Rural / remote patients should prefer affordable government hospitals
+        if area in ("rural", "remote") and hospital_pref == "any":
+            hospital_pref = "government"
 
         # Determine budget category filter
-        if budget_limit is not None:
-            try:
-                budget = float(budget_limit)
-                if budget < 100000:
-                    allowed_budgets = {"Government", "Standard"}
-                elif budget < 500000:
-                    allowed_budgets = {"Government", "Standard", "Premium"}
-                else:
-                    allowed_budgets = {"Government", "Standard", "Premium"}
-            except (ValueError, TypeError):
-                allowed_budgets = {"Government", "Standard", "Premium"}
-        else:
-            allowed_budgets = {"Government", "Standard", "Premium"}
+        try:
+            budget = float(budget_limit) if budget_limit else 0
+        except (ValueError, TypeError):
+            budget = 0
 
-        # Hospital preference filter
         if hospital_pref == "government":
             allowed_budgets = {"Government"}
         elif hospital_pref == "private":
             allowed_budgets = {"Standard", "Premium"}
+        elif budget < 100000:
+            allowed_budgets = {"Government", "Standard"}
+        elif budget < 500000:
+            allowed_budgets = {"Government", "Standard", "Premium"}
+        else:
+            allowed_budgets = {"Government", "Standard", "Premium"}
 
-        filtered = []
+        city_lower = (patient_city or "").lower().strip()
+        location_type = constraint.get("location_type", "national")
+
+        scored = []
         for h in self._hospital_data["hospitals"]:
             # Type match (exact or multi-specialty)
             if h["type"] != hospital_type and h["type"] != "Multi-specialty":
@@ -101,28 +110,37 @@ class DecisionEngine:
             # Budget match
             if h["budget_category"] not in allowed_budgets:
                 continue
-            # Location preference
-            if location_preference:
-                loc_lower = location_preference.lower()
-                if loc_lower and loc_lower not in h["city"].lower() and loc_lower not in h["location"].lower():
-                    pass  # Don't exclude, just de-prioritize later
-            filtered.append(h)
 
-        # Sort by rating descending
-        filtered.sort(key=lambda x: x.get("rating", 0), reverse=True)
-        return filtered[:5]  # Return top 5
+            # ── Location score boost (FIX: was a no-op 'pass') ──────────────
+            location_score = 0.0
+            if city_lower:
+                h_city = h.get("city", "").lower()
+                h_state = h.get("state", "").lower()
+                if city_lower in h_city or h_city in city_lower:
+                    # Strong boost for same-city hospital
+                    location_score = 4.0 if location_type == "local" else 2.0
+                elif city_lower in h_state or h_state in city_lower:
+                    # Mild boost for same-state
+                    location_score = 1.0
+
+            scored.append((h, location_score))
+
+        # Sort by (location_score + rating) descending
+        scored.sort(key=lambda x: x[1] + float(x[0].get("rating", 0)), reverse=True)
+        return [h for h, _ in scored[:5]]  # Return top 5
 
     def analyze(self, profile: dict, constraint: dict) -> dict:
         """
         Analyze medical profile and return a structured decision.
 
         Args:
-            profile: Dict with disease_type, stage, surgery_allowed, etc.
+            profile: Dict with disease_type, stage, surgery_allowed, patient_city,
+                     patient_area_type, existing_lab_reports, etc.
             constraint: Dict with budget_limit, location_type, hospital_preference
 
         Returns:
-            Dict with treatment_type, hospital_type, suggested_hospitals, timeline,
-            required_reports, specialist, guideline_source, llm_reasoning
+            Structured decision dict including treatment_type, hospital recommendations,
+            required reports, lab report verification, and LLM reasoning.
         """
         disease_type = profile.get("disease_type", "Unknown")
         stage = profile.get("stage", "")
@@ -130,8 +148,11 @@ class DecisionEngine:
         age = profile.get("age", "unknown")
         medical_history = profile.get("medical_history", "")
         symptoms = profile.get("symptoms", "")
+        patient_city = profile.get("patient_city", "")  # from Step 1 location
+        patient_area_type = profile.get("patient_area_type", "urban")  # urban/rural/remote
+        existing_lab_reports = profile.get("existing_lab_reports", "none")
 
-        print(f"[DecisionEngine] Analyzing: disease={disease_type}, stage={stage}")
+        print(f"[DecisionEngine] Analyzing: disease={disease_type}, stage={stage}, city={patient_city}, area={patient_area_type}")
 
         # ── Step 1: Retrieve from JSON knowledge ─────────────────────────────
         guideline = self._find_disease_guideline(disease_type, stage)
@@ -161,7 +182,10 @@ class DecisionEngine:
             notes = "Specific guidelines not found; general management recommended."
             guideline_source = "Default"
 
-        # ── Step 2: ChromaDB semantic search for additional context ──────────
+        # ── Step 2: Verify existing lab reports vs required reports ──────────
+        lab_verification = self._verify_lab_reports(existing_lab_reports, required_reports)
+
+        # ── Step 3: ChromaDB semantic search for additional context ──────────
         try:
             chroma_results = query_disease_guidelines(
                 f"{disease_type} {stage} treatment", n_results=2
@@ -173,11 +197,23 @@ class DecisionEngine:
             print(f"[DecisionEngine] ChromaDB query failed: {e}")
             chroma_context = ""
 
-        # ── Step 3: Filter hospitals ─────────────────────────────────────────
-        location_pref = profile.get("location", constraint.get("location_type", ""))
-        suggested_hospitals = self._filter_hospitals(hospital_type, constraint, location_pref)
+        # ── Step 4: Filter & rank hospitals using patient location ───────────
+        suggested_hospitals = self._filter_hospitals(
+            hospital_type, constraint,
+            patient_city=patient_city,
+            patient_area_type=patient_area_type,
+        )
 
-        # ── Step 4: Gemini LLM reasoning ────────────────────────────────────
+        # ── Step 5: Add rural/remote advisory note ────────────────────────────
+        area = (patient_area_type or "urban").lower()
+        if area in ("rural", "remote"):
+            notes += (
+                " NOTE: As you are in a rural/remote area, government hospitals and "
+                "telemedicine consultations are strongly recommended for initial assessment "
+                "before travelling to a major centre."
+            )
+
+        # ── Step 6: Gemini LLM reasoning ─────────────────────────────────────
         llm_reasoning = self._gemini_reason(
             profile=profile,
             treatment_type=treatment_type,
@@ -193,15 +229,45 @@ class DecisionEngine:
             "specialist": specialist,
             "timeline": timeline,
             "required_reports": required_reports,
+            "lab_verification": lab_verification,
             "notes": notes,
             "suggested_hospitals": suggested_hospitals,
             "guideline_source": guideline_source,
             "llm_reasoning": llm_reasoning,
             "surgery_allowed": surgery_allowed,
+            "patient_area_type": patient_area_type,
         }
 
-        print(f"[DecisionEngine] Decision: {treatment_type} at {hospital_type}")
+        print(f"[DecisionEngine] Decision: {treatment_type} at {hospital_type} | City: {patient_city}")
         return decision
+
+    def _verify_lab_reports(self, existing_reports: str, required_reports: list) -> dict:
+        """
+        Cross-reference existing lab reports the patient has already done
+        against those required for the disease/stage.
+        Returns a summary dict for display in the treatment plan.
+        """
+        existing_lower = (existing_reports or "none").lower()
+        if existing_lower in ("none", "no", "not done", "", "n/a", "na"):
+            return {
+                "existing": "None provided",
+                "completed": [],
+                "pending": required_reports,
+                "note": "No prior lab results provided. All required investigations listed below should be done before starting treatment."
+            }
+
+        completed = [r for r in required_reports if r.lower() in existing_lower]
+        pending   = [r for r in required_reports if r.lower() not in existing_lower]
+
+        return {
+            "existing": existing_reports,
+            "completed": completed,
+            "pending": pending,
+            "note": (
+                f"{len(completed)} of {len(required_reports)} required investigations already done. "
+                f"{len(pending)} still pending: {', '.join(pending) if pending else 'None — all clear!'}"
+            )
+        }
 
     def _gemini_reason(self, profile: dict, treatment_type: str,
                        guideline_context: str, notes: str) -> str:
